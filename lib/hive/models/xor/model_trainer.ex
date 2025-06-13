@@ -151,6 +151,18 @@ defmodule Hive.Models.Xor.ModelTrainer do
     {:noreply, %{state | training_runs: updated_runs}}
   end
 
+  @impl true
+  def handle_info({:nodeup, node}, state) do
+    Logger.info("Node #{node} is up")
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:nodedown, node}, state) do
+    Logger.info("Node #{node} is down")
+    {:noreply, state}
+  end
+
   # --- Private Functions ---
   defp average(_, a, b), do: Nx.divide(Nx.add(a, b), 2)
 
