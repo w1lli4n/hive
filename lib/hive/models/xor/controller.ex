@@ -13,7 +13,7 @@ defmodule Hive.Models.Xor.Controller do
 
     model = Hive.Models.Xor.Model.build_model()
 
-    case Hive.Models.Xor.ModelLoader.load_model_state("models/xor.ms") do
+    case Hive.Models.Xor.ModelLoader.load_model_state("xor.ms") do
       {:ok, model_state} ->
         prediction =
           Hive.Models.Xor.Model.run_inference(model, model_state, data)

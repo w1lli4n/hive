@@ -253,7 +253,7 @@ defmodule Hive.Models.Xor.ModelTrainer do
 
     Hive.Models.Xor.ModelLoader.save_model_state?(
       training_run.current_model_state,
-      "models/xor.ms"
+      "xor.ms"
     )
 
     Logger.info("Final model state saved for model ID #{id}")
