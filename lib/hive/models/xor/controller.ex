@@ -15,8 +15,12 @@ defmodule Hive.Models.Xor.Controller do
 
     case Hive.Models.Xor.ModelLoader.load_model_state("xor.ms") do
       {:ok, model_state} ->
+        # Ensure we're using the same backend as during training
+        Nx.global_default_backend(EXLA.Backend)
+
         prediction =
-          Hive.Models.Xor.Model.run_inference(model, model_state, data)
+          model
+          |> Hive.Models.Xor.Model.run_inference(model_state, data)
           |> Hive.Models.Xor.DataEgestion.egest_data(:inference)
 
         {:ok, prediction}
