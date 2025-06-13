@@ -29,6 +29,7 @@ defmodule Hive.MixProject do
       {:jason, "~> 1.4.4"},
       {:axon, "~> 0.7.0"},
       {:nx, "~> 0.9.2"},
+      {:exla, "~> 0.9.2"},
       {:libcluster, "~> 3.5.0"}
     ]
   end

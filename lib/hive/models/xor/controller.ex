@@ -1,6 +1,8 @@
 defmodule Hive.Models.Xor.Controller do
   @behaviour Hive.Core.Controller
 
+  require Logger
+
   @impl true
   @spec inference_pipeline(input_data :: {integer(), integer()}) ::
           {:ok, integer()} | {:error, String.t()}
@@ -26,15 +28,17 @@ defmodule Hive.Models.Xor.Controller do
 
   @impl true
   def training_pipeline(_data_source) do
-    {:ok, loaded_data} =
-      Hive.Models.Xor.DataIngestion.load_data("")
-
-    data = loaded_data |> Hive.Models.Xor.DataIngestion.ingest_data(:training)
+    # Here, instead of loading one batch and then streaming it,
+    # we directly get the infinite stream of batches for training.
+    data_stream = Hive.Models.Xor.DataIngestion.ingest_data(nil, :training)
 
     model = Hive.Models.Xor.Model.build_model()
-    opts = [epochs: 21, steps: 3]
+    # Added iterations to opts for FragmentTrainer
+    opts = [epochs: 20, steps: 5, iterations: 100]
 
-    Hive.Models.Xor.ModelTrainer.run(model, data, opts)
-    |> Hive.Models.Xor.ModelLoader.save_model_state?("xor.ms")
+    # Pass the stream
+    {:ok, _model_state} = Hive.Models.Xor.ModelTrainer.run(model, data_stream, opts)
+
+    Logger.info("Training completed")
   end
 end

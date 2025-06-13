@@ -19,27 +19,29 @@ defmodule Hive.Models.Xor.ModelTrainer do
   @impl Hive.Core.ModelTrainer
   def run(model, data, opts, id \\ nil, initial_model_state \\ Axon.ModelState.empty()) do
     if opts[:epochs] < opts[:steps] do
+      Hive.Models.Xor.ModelLoader.save_model_state?(initial_model_state, "xor.ms")
+      Logger.info(IO.inspect(initial_model_state))
       {:ok, initial_model_state}
-    end
+    else
+      generated_id = id || get_next_model_idx()
 
-    generated_id = id || get_next_model_idx()
+      case GenServer.call(
+             __MODULE__,
+             {:run_training, model, data, opts, generated_id, initial_model_state}
+           ) do
+        {:error, :no_nodes_available} ->
+          {:error, "no_nodes_available"}
 
-    case GenServer.call(
-           __MODULE__,
-           {:run_training, model, data, opts, generated_id, initial_model_state}
-         ) do
-      {:error, :no_nodes_available} ->
-        {:error, "no_nodes_available"}
+        {:ok, :tasks_running} ->
+          run(model, data, opts, id, initial_model_state)
 
-      {:ok, :tasks_running} ->
-        run(model, data, opts, id, initial_model_state)
+        {:ok, current_id, current_model_state} ->
+          new_data = data
+          new_epochs = opts[:epochs] - opts[:steps]
+          new_opts = Keyword.put(opts, :epochs, new_epochs)
 
-      {:ok, current_id, current_model_state} ->
-        new_data = data
-        new_epochs = opts[:epochs] - opts[:steps]
-        new_opts = Keyword.put(opts, :epochs, new_epochs)
-
-        run(model, new_data, new_opts, current_id, current_model_state)
+          run(model, new_data, new_opts, current_id, current_model_state)
+      end
     end
   end
 

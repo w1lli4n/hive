@@ -1,23 +1,32 @@
 defmodule Hive.Models.Xor.FragmentTrainer do
+  require Logger
   @behaviour Hive.Core.FragmentTrainer
 
   @impl Hive.Core.FragmentTrainer
   def run(
         model,
-        data,
+        # This is now the stream of batches
+        data_stream,
         opts,
         id,
         initial_model_state \\ Axon.ModelState.empty()
       ) do
+    # No unwrapping needed if data_stream is already a Stream yielding batches
     model_state =
       model
       |> Axon.Loop.trainer(:binary_cross_entropy, :sgd)
-      |> Axon.Loop.run(data, initial_model_state,
+      # Pass the stream directly
+      |> Axon.Loop.run(data_stream, initial_model_state,
         epochs: opts[:epochs],
-        iterations: 100,
+        # Ensure iterations is available
+        iterations: opts[:iterations] || 100,
         compiler: EXLA
       )
 
     {:ok, id, model_state}
+  rescue
+    e ->
+      Logger.error("FragmentTrainer failed for model ID #{id}: #{inspect(e)}")
+      {:error, :training_failed}
   end
 end
