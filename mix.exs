@@ -31,7 +31,8 @@ defmodule Hive.MixProject do
       {:nx, "~> 0.9.2"},
       {:exla, "~> 0.9.2"},
       {:libcluster, "~> 3.5.0"},
-      {:stb_image, "~> 0.6.10"}
+      {:stb_image, "~> 0.6.10"},
+      {:req, "~> 0.5.10"}
     ]
   end
 end

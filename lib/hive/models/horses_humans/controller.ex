@@ -34,9 +34,12 @@ defmodule Hive.Models.HorsesHumans.Controller do
   def training_pipeline(_data_source) do
     # Here, instead of loading one batch and then streaming it,
     # we directly get the infinite stream of batches for training.
-    data_stream =
-      Hive.Models.HorsesHumans.DataIngestion.load_data("datasets/horses_or_humans")
-      |> Hive.Models.HorsesHumans.DataIngestion.ingest_data(:training)
+    url = "https://storage.googleapis.com/learning-datasets/horse-or-human.zip"
+
+    {:ok, data} =
+      Hive.Models.HorsesHumans.DataIngestion.load_data(url)
+
+    data_stream = data |> Hive.Models.HorsesHumans.DataIngestion.ingest_data(:training)
 
     model = Hive.Models.HorsesHumans.Model.build_model()
     opts = [epochs: 20, steps: 5, iterations: 16]

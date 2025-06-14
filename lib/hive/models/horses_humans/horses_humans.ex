@@ -1,4 +1,4 @@
-defmodule Hive.Models.Xor do
+defmodule Hive.Models.HorsesHumans do
   use Supervisor
 
   def start_link(init_arg) do

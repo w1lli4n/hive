@@ -163,6 +163,12 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
     {:noreply, state}
   end
 
+  @impl true
+  def handle_info({_ref, {:error, :training_failed}}, state) do
+    Logger.info("Training failed")
+    {:noreply, state}
+  end
+
   # --- Private Functions ---
   defp average(_, a, b), do: Nx.divide(Nx.add(a, b), 2)
 

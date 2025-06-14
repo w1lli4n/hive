@@ -9,7 +9,8 @@ defmodule Hive.Application do
       {Bandit, plug: Hive.Router, scheme: :http, port: 3177},
       {Cluster.Supervisor, [Application.get_env(:libcluster, :topologies)]},
       {Task.Supervisor, name: Hive.TaskSupervisor},
-      Hive.Models.Xor
+      Hive.Models.Xor,
+      Hive.Models.HorsesHumans
     ]
 
     opts = [strategy: :one_for_one, name: Hive.Supervisor]
