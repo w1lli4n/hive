@@ -22,4 +22,4 @@ hive-*.tar
 # Temporary files, for example, from tests.
 /tmp/
 
-models/
+xor.ms
