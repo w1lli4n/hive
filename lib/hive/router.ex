@@ -30,6 +30,22 @@ defmodule Hive.Router do
     end
   end
 
+  get "/horses-humans" do
+    data = conn.params["data"]
+
+    case Hive.Models.HorsesHumans.Controller.inference_pipeline(data) do
+      {:ok, resp} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(200, Jason.encode!(%{result: resp}))
+
+      {:error, e} ->
+        conn
+        |> put_resp_content_type("application/json")
+        |> send_resp(500, Jason.encode!(%{error: e}))
+    end
+  end
+
   match _ do
     resp =
       %{error: "Not found"}
