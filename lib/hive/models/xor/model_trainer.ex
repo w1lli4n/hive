@@ -110,7 +110,7 @@ defmodule Hive.Models.Xor.ModelTrainer do
     id_str = to_string(id)
     Logger.info("Received training result for model ID: #{id_str} from task #{inspect(ref)}")
 
-    dematerialized_state = dematerialize_model_state(task_model_state)
+    dematerialized_state = Nx.deserialize(task_model_state)
 
     case Map.get(state.training_runs, id_str) do
       nil ->
@@ -191,7 +191,7 @@ defmodule Hive.Models.Xor.ModelTrainer do
       "Starting training step for model ID: #{model_id}, remaining epochs: #{training_run.remaining_epochs}"
     )
 
-    materialized_state = materialize_model_state(current_model_state)
+    materialized_state = Nx.serialize(current_model_state)
 
     current_step_tasks =
       Enum.map(nodes, fn node ->

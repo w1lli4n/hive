@@ -12,7 +12,7 @@ defmodule Hive.Models.Xor.FragmentTrainer do
         initial_model_state \\ Axon.ModelState.empty()
       ) do
     # No unwrapping needed if data_stream is already a Stream yielding batches
-    dematerialized_state = dematerialize_model_state(initial_model_state)
+    dematerialized_state = Nx.deserialize(initial_model_state)
 
     model_state =
       model
@@ -25,7 +25,7 @@ defmodule Hive.Models.Xor.FragmentTrainer do
         compiler: EXLA
       )
 
-    materialized_state = materialize_model_state(model_state)
+    materialized_state = Nx.serialize(model_state)
     {:ok, id, materialized_state}
   rescue
     e ->
