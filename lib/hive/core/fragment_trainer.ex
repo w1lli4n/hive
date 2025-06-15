@@ -4,5 +4,5 @@ defmodule Hive.Core.FragmentTrainer do
               data :: {Enumerable.t(), Enumerable.t()},
               initial_model_state :: %Axon.ModelState{},
               opts :: Enumerable.t()
-            ) :: {:ok, integer(), %Axon{}} | {:error, String.t()}
+            ) :: {:ok, integer(), any} | {:error, String.t()}
 end
