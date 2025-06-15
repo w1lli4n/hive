@@ -193,15 +193,23 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
 
     materialized_state = Nx.serialize(current_model_state)
 
+    # Create independent data streams for each node
+    node_data_streams =
+      Enum.map(nodes, fn _ ->
+        # Create a new stream for each node
+        data |> Stream.map(& &1)
+      end)
+
     current_step_tasks =
-      Enum.map(nodes, fn node ->
+      Enum.zip(nodes, node_data_streams)
+      |> Enum.map(fn {node, node_data} ->
         Task.Supervisor.async_nolink(
           {Hive.TaskSupervisor, node},
           Hive.Models.HorsesHumans.FragmentTrainer,
           :run,
           [
             model,
-            data |> Enum.take(2),
+            node_data,
             opts |> Keyword.put(:epochs, epochs_for_this_step),
             model_id,
             materialized_state
