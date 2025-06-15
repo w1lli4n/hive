@@ -86,7 +86,7 @@ defmodule Hive.Models.Xor.ModelTrainer do
         %{
           model: _model,
           data: _data,
-          opts: opts,
+          opts: _opts,
           current_model_state: _current_model_state,
           remaining_epochs: remaining_epochs
         } = training_run
@@ -96,7 +96,7 @@ defmodule Hive.Models.Xor.ModelTrainer do
           GenServer.reply(training_run.caller, {:error, "no_nodes_available"})
           {:noreply, %{state | training_runs: Map.delete(state.training_runs, model_id)}}
         else
-          if remaining_epochs >= opts[:steps] do
+          if remaining_epochs > 0 do
             start_training_step(model_id, training_run, nodes, state)
           else
             complete_training(model_id, training_run, state)
@@ -154,12 +154,21 @@ defmodule Hive.Models.Xor.ModelTrainer do
   @impl true
   def handle_info({:nodeup, node}, state) do
     Logger.info("Node #{node} is up")
-    {:noreply, state}
+
+    new_nodes = Enum.uniq(state.nodes ++ [node])
+    {:noreply, %{state | nodes: new_nodes}}
   end
 
   @impl true
   def handle_info({:nodedown, node}, state) do
     Logger.info("Node #{node} is down")
+    new_nodes = Enum.reject(state.nodes, fn n -> n == node end)
+    {:noreply, %{state | nodes: new_nodes}}
+  end
+
+  @impl true
+  def handle_info({_ref, {:error, :training_failed}}, state) do
+    Logger.info("Training failed")
     {:noreply, state}
   end
 
@@ -174,6 +183,8 @@ defmodule Hive.Models.Xor.ModelTrainer do
       current_model_state: current_model_state
     } = training_run
 
+    epochs_for_this_step = opts[:steps]
+
     Logger.info(
       "Starting training step for model ID: #{model_id}, remaining epochs: #{training_run.remaining_epochs}"
     )
@@ -184,7 +195,13 @@ defmodule Hive.Models.Xor.ModelTrainer do
           {Hive.TaskSupervisor, node},
           Hive.Models.Xor.FragmentTrainer,
           :run,
-          [model, data, opts, model_id, current_model_state]
+          [
+            model,
+            data,
+            opts |> Keyword.put(:epochs, epochs_for_this_step),
+            model_id,
+            current_model_state
+          ]
         )
       end)
 
@@ -220,16 +237,19 @@ defmodule Hive.Models.Xor.ModelTrainer do
         training_run.current_model_state
       )
 
+    epochs_completed_in_this_step = training_run.opts[:steps]
+    updated_remaining_epochs = training_run.remaining_epochs - epochs_completed_in_this_step
+
     updated_run = %{
       training_run
       | current_model_state: merged_state,
-        remaining_epochs: training_run.remaining_epochs - training_run.opts[:steps],
+        remaining_epochs: updated_remaining_epochs,
         completed_model_states: []
     }
 
     updated_runs = Map.put(training_runs, id, updated_run)
 
-    if training_complete?(updated_run) do
+    if updated_remaining_epochs <= 0 do
       complete_training(id, updated_run, updated_runs, state)
     else
       Logger.info(
@@ -238,10 +258,6 @@ defmodule Hive.Models.Xor.ModelTrainer do
 
       {:noreply, %{state | training_runs: updated_runs}, {:continue, {:start_step, id}}}
     end
-  end
-
-  defp training_complete?(%{remaining_epochs: remaining, opts: opts}) do
-    remaining < opts[:steps]
   end
 
   defp complete_training(id, training_run, state) do
@@ -253,7 +269,7 @@ defmodule Hive.Models.Xor.ModelTrainer do
 
     Hive.Models.Xor.ModelLoader.save_model_state?(
       training_run.current_model_state,
-      "xor.ms"
+      "models/xor.ms"
     )
 
     Logger.info("Final model state saved for model ID #{id}")
