@@ -42,7 +42,7 @@ defmodule Hive.Models.HorsesHumans.Controller do
     data_stream = data |> Hive.Models.HorsesHumans.DataIngestion.ingest_data(:training)
 
     model = Hive.Models.HorsesHumans.Model.build_model()
-    opts = [epochs: 20, steps: 5, iterations: 16]
+    opts = [epochs: 4, steps: 5, iterations: 16]
 
     # Pass the stream
     {:ok, _model_state} = Hive.Models.HorsesHumans.ModelTrainer.run(model, data_stream, opts)
