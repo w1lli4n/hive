@@ -5,7 +5,7 @@ defmodule Hive.Models.HorsesHumans.FragmentTrainer do
   @impl Hive.Core.FragmentTrainer
   def run(
         model,
-        data_stream,
+        batches,
         opts,
         id,
         initial_model_state \\ Axon.ModelState.empty()
@@ -18,9 +18,9 @@ defmodule Hive.Models.HorsesHumans.FragmentTrainer do
     model_state =
       model
       |> Axon.Loop.trainer(:categorical_cross_entropy, centralized_optimizer)
-      |> Axon.Loop.run(data_stream, dematerialized_state,
+      |> Axon.Loop.run(batches, dematerialized_state,
         epochs: opts[:epochs],
-        iterations: opts[:iterations] || 16,
+        iterations: length(batches),
         compiler: EXLA
       )
 
