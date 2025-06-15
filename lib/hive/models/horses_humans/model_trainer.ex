@@ -110,6 +110,8 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
     id_str = to_string(id)
     Logger.info("Received training result for model ID: #{id_str} from task #{inspect(ref)}")
 
+    dematerialized_state = Nx.deserialize(task_model_state)
+
     case Map.get(state.training_runs, id_str) do
       nil ->
         Logger.warning("Received result for unknown or completed model ID: #{id_str}")
@@ -119,7 +121,7 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
         updated_run =
           training_run
           |> remove_completed_task(ref)
-          |> add_completed_model_state(task_model_state)
+          |> add_completed_model_state(dematerialized_state)
 
         updated_runs = Map.put(state.training_runs, id_str, updated_run)
 
@@ -189,6 +191,8 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
       "Starting training step for model ID: #{model_id}, remaining epochs: #{training_run.remaining_epochs}"
     )
 
+    materialized_state = Nx.serialize(current_model_state)
+
     current_step_tasks =
       Enum.map(nodes, fn node ->
         Task.Supervisor.async_nolink(
@@ -200,7 +204,7 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
             data,
             opts |> Keyword.put(:epochs, epochs_for_this_step),
             model_id,
-            current_model_state
+            materialized_state
           ]
         )
       end)

@@ -10,19 +10,22 @@ defmodule Hive.Models.HorsesHumans.FragmentTrainer do
         id,
         initial_model_state \\ Axon.ModelState.empty()
       ) do
+    dematerialized_state = Nx.deserialize(initial_model_state)
+
     optimizer = Polaris.Optimizers.adam(learning_rate: 1.0e-4)
     centralized_optimizer = Polaris.Updates.compose(Polaris.Updates.centralize(), optimizer)
 
     model_state =
       model
       |> Axon.Loop.trainer(:categorical_cross_entropy, centralized_optimizer)
-      |> Axon.Loop.run(data_stream, initial_model_state,
+      |> Axon.Loop.run(data_stream, dematerialized_state,
         epochs: opts[:epochs],
         iterations: opts[:iterations] || 16,
         compiler: EXLA
       )
 
-    {:ok, id, model_state}
+    materialized_state = Nx.serialize(model_state)
+    {:ok, id, materialized_state}
   rescue
     e ->
       Logger.error("FragmentTrainer failed for model ID #{id}: #{inspect(e)}")

@@ -5,19 +5,7 @@ defmodule Hive.Models.Xor.ModelLoader do
   def save_model_state?(model_state, path) do
     # Convert to safe format before serialization
     serializable =
-      Axon.ModelState.freeze(model_state)
-      |> Axon.ModelState.frozen_parameters()
-      |> Enum.map(fn {section_name, section_data} ->
-        converted_section_data =
-          Enum.map(section_data, fn {key, tensor} ->
-            # Key step: Convert the tensor to a serializable form
-            {key, Nx.to_list(tensor)}
-          end)
-          |> Map.new()
-
-        {section_name, converted_section_data}
-      end)
-      |> Map.new()
+      Nx.serialize(model_state)
       |> :erlang.term_to_binary()
 
     File.write(path, serializable)
@@ -27,21 +15,11 @@ defmodule Hive.Models.Xor.ModelLoader do
   def load_model_state(path) do
     case File.read(path) do
       {:ok, binary} ->
-        ms = :erlang.binary_to_term(binary)
+        model_state = :erlang.binary_to_term(binary)
 
-        lms =
-          Enum.map(ms, fn {section_name, section_data} ->
-            transferred_section_data =
-              Enum.map(section_data, fn {key, tensor} ->
-                {key, Nx.tensor(tensor)}
-              end)
-              |> Map.new()
+        loaded_model_state = Nx.deserialize(model_state)
 
-            {section_name, transferred_section_data}
-          end)
-          |> Map.new()
-
-        {:ok, lms}
+        {:ok, loaded_model_state}
 
       {:error, reason} ->
         {:error, reason}
