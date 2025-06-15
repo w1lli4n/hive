@@ -201,7 +201,7 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
           :run,
           [
             model,
-            data,
+            data |> Enum.take(2),
             opts |> Keyword.put(:epochs, epochs_for_this_step),
             model_id,
             materialized_state
@@ -241,8 +241,7 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
         training_run.current_model_state
       )
 
-    epochs_completed_in_this_step = training_run.opts[:steps]
-    updated_remaining_epochs = training_run.remaining_epochs - epochs_completed_in_this_step
+    updated_remaining_epochs = training_run.remaining_epochs - 1
 
     updated_run = %{
       training_run

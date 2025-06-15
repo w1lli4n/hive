@@ -45,7 +45,7 @@ defmodule Hive.Models.HorsesHumans.DataIngestion do
         {images, labels} = batch |> Enum.map(&process_data(&1, :parse_file)) |> Enum.unzip()
         {Nx.stack(images), Nx.stack(labels)}
       end,
-      timeout: 5000
+      timeout: :infinity
     )
     |> Stream.map(fn {:ok, {images, labels}} -> {augment(images), labels} end)
     |> Stream.cycle()
