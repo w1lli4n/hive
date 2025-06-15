@@ -27,11 +27,12 @@ defmodule Hive.Models.HorsesHumans.DataIngestion do
   end
 
   @impl Hive.Core.DataIngestion
-  def process_data(data, :inference) do
-    {a, b} = data
-    x1 = Nx.tensor([[a]])
-    x2 = Nx.tensor([[b]])
-    %{"a" => x1, "b" => x2}
+  def process_data(binary, :inference) do
+    binary
+    |> StbImage.read_binary!()
+    |> StbImage.to_nx()
+    |> Nx.new_axis(0)
+    |> Nx.divide(255.0)
   end
 
   @impl Hive.Core.DataIngestion
