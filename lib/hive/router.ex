@@ -15,7 +15,9 @@ defmodule Hive.Router do
   end
 
   get "/xor" do
-    data = conn.params["data"]
+    a = conn.params["a"] |> String.to_integer()
+    b = conn.params["b"] |> String.to_integer()
+    data = {a, b}
 
     case Hive.Models.Xor.Controller.inference_pipeline(data) do
       {:ok, resp} ->
