@@ -185,7 +185,14 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
       current_model_state: current_model_state
     } = training_run
 
-    epochs_for_this_step = opts[:steps]
+    epochs_for_this_step = 1
+
+    iterations_for_this_step = div(opts[:iterations], length(state.nodes))
+
+    step_opts =
+      opts
+      |> Keyword.put(:epochs, epochs_for_this_step)
+      |> Keyword.put(:iterations, iterations_for_this_step)
 
     Logger.info(
       "Starting training step for model ID: #{model_id}, remaining epochs: #{training_run.remaining_epochs}"
@@ -193,13 +200,11 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
 
     materialized_state = Nx.serialize(current_model_state)
 
-    # Pre-process data into batches for each node
     node_batches =
       nodes
       |> Enum.map(fn _ ->
-        # Take a fixed number of batches for each node
         data
-        |> Stream.take(opts[:iterations] || 16)
+        |> Stream.take(iterations_for_this_step)
         |> Enum.to_list()
       end)
 
@@ -213,7 +218,7 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
           [
             model,
             batches,
-            opts |> Keyword.put(:epochs, epochs_for_this_step),
+            step_opts,
             model_id,
             materialized_state
           ]
