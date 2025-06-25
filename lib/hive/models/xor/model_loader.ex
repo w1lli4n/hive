@@ -3,7 +3,6 @@ defmodule Hive.Models.Xor.ModelLoader do
 
   @impl true
   def save_model_state?(model_state, path) do
-    # Convert to safe format before serialization
     serializable =
       Nx.serialize(model_state)
       |> :erlang.term_to_binary()

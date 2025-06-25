@@ -4,7 +4,7 @@ defmodule Hive.Models.HorsesHumans.Controller do
   require Logger
 
   @impl true
-  @spec inference_pipeline(input_data :: {integer(), integer()}) ::
+  @spec inference_pipeline(input_data :: binary()) ::
           {:ok, integer()} | {:error, String.t()}
   def inference_pipeline(input_data) do
     data =
@@ -13,7 +13,7 @@ defmodule Hive.Models.HorsesHumans.Controller do
 
     model = Hive.Models.HorsesHumans.Model.build_model()
 
-    case Hive.Models.HorsesHumans.ModelLoader.load_model_state("horses_humans.ms") do
+    case Hive.Models.HorsesHumans.ModelLoader.load_model_state("models/horses_humans.ms") do
       {:ok, model_state} ->
         # Ensure we're using the same backend as during training
         Nx.global_default_backend(EXLA.Backend)

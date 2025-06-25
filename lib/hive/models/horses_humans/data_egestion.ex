@@ -4,7 +4,8 @@ defmodule Hive.Models.HorsesHumans.DataEgestion do
   @impl Hive.Core.DataEgestion
   def process_data(data, :format_tensor) do
     data
-    |> Nx.round()
+    |> Nx.squeeze()
+    |> Nx.slice_along_axis(1, 1)
     |> Nx.squeeze()
     |> Nx.to_number()
     |> round()
@@ -12,7 +13,7 @@ defmodule Hive.Models.HorsesHumans.DataEgestion do
 
   @impl Hive.Core.DataEgestion
   def process_data(data, :binary) do
-    if data > 0 do
+    if data < 1 do
       "human"
     else
       "horse"

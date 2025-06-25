@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Hive Router Client</title>
+        <!-- Tailwind CSS CDN -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            body {
+                font-family: "Inter", sans-serif;
+                background-color: #f0f4f8; /* Light blue-gray background */
+                display: flex;
+                justify-content: center;
+                align-items: flex-start; /* Align to start to allow scrolling */
+                min-height: 100vh; /* Minimum height of viewport */
+                padding: 20px;
+                box-sizing: border-box;
+            }
+            .container {
+                background-color: #ffffff;
+                padding: 30px;
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                max-width: 900px; /* Max width for larger screens */
+                width: 100%;
+                display: grid;
+                gap: 24px;
+                grid-template-columns: 1fr; /* Single column for small screens */
+            }
+
+            @media (min-width: 768px) {
+                .container {
+                    grid-template-columns: repeat(
+                        2,
+                        1fr
+                    ); /* Two columns for medium screens */
+                }
+            }
+
+            .section {
+                background-color: #f8fafc; /* Lighter section background */
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06); /* Inner shadow */
+            }
+
+            .output-area {
+                @apply bg-gray-100 p-3 rounded-lg text-gray-800 text-sm overflow-auto max-h-40 break-words;
+                white-space: pre-wrap; /* Preserve whitespace and break words */
+            }
+        </style>
+    </head>
+    <body class="selection:bg-blue-200 selection:text-blue-800">
+        <div class="container">
+            <h1
+                class="text-3xl font-bold text-center text-gray-800 mb-6 col-span-full"
+            >
+                Hive Client
+            </h1>
+
+            <!-- XOR Endpoint Section -->
+            <div class="section flex flex-col gap-4">
+                <h2 class="text-xl font-semibold text-gray-700">
+                    XOR Endpoint
+                </h2>
+                <p class="text-gray-600 text-sm">
+                    Calculates the XOR of two integers 'a' and 'b'.
+                </p>
+                <div class="flex flex-col gap-2">
+                    <input
+                        type="number"
+                        id="xorInputA"
+                        placeholder="Enter integer A"
+                        class="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                    />
+                    <input
+                        type="number"
+                        id="xorInputB"
+                        placeholder="Enter integer B"
+                        class="p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                    />
+                </div>
+                <button
+                    id="calculateXorBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out w-full"
+                >
+                    Calculate XOR
+                </button>
+                <div
+                    id="xorOutput"
+                    class="bg-gray-100 p-3 rounded-lg text-gray-800 text-sm overflow-auto max-h-40 break-words; white-space: pre-wrap min-h-[4rem]"
+                >
+                    <p class="text-gray-500">
+                        Enter numbers and click to calculate XOR.
+                    </p>
+                </div>
+                <div id="xorError" class="text-red-600 text-sm mt-1"></div>
+            </div>
+
+            <!-- Horses-Humans Endpoint Section -->
+            <div class="section flex flex-col gap-4">
+                <h2 class="text-xl font-semibold text-gray-700">
+                    Horses/Humans Endpoint
+                </h2>
+                <p class="text-gray-600 text-sm">
+                    Upload an image for classification prediction (e.g., "horse"
+                    or "human").
+                </p>
+                <input
+                    type="file"
+                    id="hhInputImage"
+                    accept="image/*"
+                    class="border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full p-1"
+                />
+                <button
+                    id="predictHhBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out w-full"
+                >
+                    Predict Image
+                </button>
+                <div
+                    id="hhOutput"
+                    class="bg-gray-100 p-3 rounded-lg text-gray-800 text-sm overflow-auto max-h-40 break-words; white-space: pre-wrap min-h-[4rem]"
+                >
+                    <p class="text-gray-500">
+                        Select an image and click to predict.
+                    </p>
+                </div>
+                <div id="hhError" class="text-red-600 text-sm mt-1"></div>
+            </div>
+        </div>
+
+        <script>
+            // Helper function to display messages in output areas
+            function displayMessage(elementId, message, isError = false) {
+                const outputElement = document.getElementById(elementId);
+                const errorElement = document.getElementById(
+                    elementId.replace("Output", "Error"),
+                );
+
+                if (isError) {
+                    errorElement.textContent = message;
+                    outputElement.innerHTML = `<p class="text-gray-500">An error occurred.</p>`; // Clear success message
+                } else {
+                    outputElement.textContent = message;
+                    errorElement.textContent = ""; // Clear error message
+                }
+            }
+
+            // --- XOR Endpoint Logic ---
+            document
+                .getElementById("calculateXorBtn")
+                .addEventListener("click", async () => {
+                    const inputA = document.getElementById("xorInputA").value;
+                    const inputB = document.getElementById("xorInputB").value;
+
+                    // Basic validation
+                    if (inputA === "" || inputB === "") {
+                        displayMessage(
+                            "xorOutput",
+                            "Please enter values for both A and B.",
+                            true,
+                        );
+                        return;
+                    }
+                    if (isNaN(inputA) || isNaN(inputB)) {
+                        displayMessage(
+                            "xorOutput",
+                            "Please enter valid numbers for A and B.",
+                            true,
+                        );
+                        return;
+                    }
+
+                    displayMessage("xorOutput", "Calculating XOR...", false);
+                    try {
+                        // Ensure values are encoded for URL
+                        const url = `/xor?a=${encodeURIComponent(inputA)}&b=${encodeURIComponent(inputB)}`;
+                        const response = await fetch(url);
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            displayMessage(
+                                "xorOutput",
+                                `Result: ${data.result}`,
+                            );
+                        } else {
+                            displayMessage(
+                                "xorOutput",
+                                `Error: ${data.error || response.statusText}`,
+                                true,
+                            );
+                        }
+                    } catch (error) {
+                        console.error("Network or parsing error:", error);
+                        displayMessage(
+                            "xorOutput",
+                            `Network Error: ${error.message}`,
+                            true,
+                        );
+                    }
+                });
+
+            // --- Horses-Humans Endpoint Logic ---
+            document
+                .getElementById("predictHhBtn")
+                .addEventListener("click", async () => {
+                    const imageInput = document.getElementById("hhInputImage");
+                    const file = imageInput.files[0]; // Get the selected file
+
+                    if (!file) {
+                        displayMessage(
+                            "hhOutput",
+                            "Please select an image file.",
+                            true,
+                        );
+                        return;
+                    }
+
+                    displayMessage(
+                        "hhOutput",
+                        "Processing image and predicting...",
+                        false,
+                    );
+
+                    const reader = new FileReader();
+
+                    reader.onload = async (event) => {
+                        const base64Image = event.target.result; // This will be the Base64 string
+                        try {
+                            const response = await fetch("/horses-humans", {
+                                method: "POST", // Changed method to POST
+                                headers: {
+                                    "Content-Type": "application/json", // Set Content-Type header
+                                },
+                                body: JSON.stringify({ data: base64Image }), // Send data as JSON body
+                            });
+                        } catch (error) {
+                            console.error("Network or parsing error:", error);
+                            displayMessage(
+                                "hhOutput",
+                                `Network Error: ${error.message}`,
+                                true,
+                            );
+                        }
+                    };
+
+                    reader.onerror = (error) => {
+                        console.error("FileReader error:", error);
+                        displayMessage(
+                            "hhOutput",
+                            `File reading error: ${error.message}`,
+                            true,
+                        );
+                    };
+
+                    // Read the file as a Data URL (Base64)
+                    reader.readAsDataURL(file);
+                });
+        </script>
+    </body>
+</html>

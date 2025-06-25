@@ -18,6 +18,7 @@ defmodule Hive.Models.HorsesHumans.FragmentTrainer do
     model_state =
       model
       |> Axon.Loop.trainer(:categorical_cross_entropy, centralized_optimizer)
+      |> Axon.Loop.metric(:accuracy)
       |> Axon.Loop.run(batches, dematerialized_state,
         epochs: opts[:epochs],
         iterations: length(batches),

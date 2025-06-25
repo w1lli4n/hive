@@ -15,7 +15,6 @@ defmodule Hive.Models.Xor.Controller do
 
     case Hive.Models.Xor.ModelLoader.load_model_state("models/xor.ms") do
       {:ok, model_state} ->
-        # Ensure we're using the same backend as during training
         Nx.global_default_backend(EXLA.Backend)
 
         prediction =
@@ -32,15 +31,10 @@ defmodule Hive.Models.Xor.Controller do
 
   @impl true
   def training_pipeline(_data_source) do
-    # Here, instead of loading one batch and then streaming it,
-    # we directly get the infinite stream of batches for training.
     data_stream = Hive.Models.Xor.DataIngestion.ingest_data(nil, :training)
 
     model = Hive.Models.Xor.Model.build_model()
-    # Added iterations to opts for FragmentTrainer
-    opts = [epochs: 20, steps: 5, iterations: 100]
-
-    # Pass the stream
+    opts = [epochs: 10, steps: 1, iterations: 1000]
     {:ok, _model_state} = Hive.Models.Xor.ModelTrainer.run(model, data_stream, opts)
 
     Logger.info("Training completed")
