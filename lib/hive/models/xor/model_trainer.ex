@@ -185,7 +185,7 @@ defmodule Hive.Models.Xor.ModelTrainer do
       current_model_state: current_model_state
     } = training_run
 
-    epochs_for_this_step = 1
+    epochs_for_this_step = 2
 
     iterations_for_this_step = div(opts[:iterations], length(state.nodes))
 
