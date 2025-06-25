@@ -14,9 +14,9 @@ defmodule Hive.Models.HorsesHumans.DataEgestion do
   @impl Hive.Core.DataEgestion
   def process_data(data, :binary) do
     if data < 1 do
-      "human"
-    else
       "horse"
+    else
+      "human"
     end
   end
 
