@@ -12,6 +12,11 @@ defmodule Hive.Models.HorsesHumans.FragmentTrainer do
       ) do
     dematerialized_state = Nx.deserialize(initial_model_state)
 
+    dematerialized_batches =
+      Enum.map(batches, fn {inputs, labels} ->
+        {Nx.deserialize(inputs), Nx.deserialize(labels)}
+      end)
+
     optimizer = Polaris.Optimizers.adam(learning_rate: 1.0e-4)
     centralized_optimizer = Polaris.Updates.compose(Polaris.Updates.centralize(), optimizer)
 
@@ -19,7 +24,7 @@ defmodule Hive.Models.HorsesHumans.FragmentTrainer do
       model
       |> Axon.Loop.trainer(:categorical_cross_entropy, centralized_optimizer)
       |> Axon.Loop.metric(:accuracy)
-      |> Axon.Loop.run(batches, dematerialized_state,
+      |> Axon.Loop.run(dematerialized_batches, dematerialized_state,
         epochs: opts[:epochs],
         iterations: length(batches),
         compiler: EXLA

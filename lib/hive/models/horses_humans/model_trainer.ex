@@ -204,8 +204,8 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
       nodes
       |> Enum.map(fn _ ->
         data
-        |> Stream.take(iterations_for_this_step)
-        |> Enum.to_list()
+        |> Enum.take(iterations_for_this_step)
+        |> Enum.map(fn {inputs, labels} -> {Nx.serialize(inputs), Nx.serialize(labels)} end)
       end)
 
     current_step_tasks =
