@@ -24,7 +24,7 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
       if acc == Axon.ModelState.empty() do
         ms
       else
-        Axon.ModelState.merge(ms, acc, &average/3)
+        Axon.ModelState.merge(ms, acc, &Hive.Models.HorsesHumans.Slerp.slerp/3)
       end
     end)
   end
@@ -175,7 +175,7 @@ defmodule Hive.Models.HorsesHumans.ModelTrainer do
   end
 
   # --- Private Functions ---
-  defp average(_, a, b), do: Nx.divide(Nx.add(a, b), 2)
+  # defp average(_, a, b), do: Nx.divide(Nx.add(a, b), 2)
 
   defp start_training_step(model_id, training_run, nodes, state) do
     %{

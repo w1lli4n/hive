@@ -23,7 +23,11 @@ defmodule Hive.Models.HorsesHumans.FragmentTrainer do
     model_state =
       model
       |> Axon.Loop.trainer(:categorical_cross_entropy, centralized_optimizer)
-      |> Axon.Loop.metric(:accuracy)
+      |> Axon.Loop.metric(:accuracy, "Accuracy")
+      |> Axon.Loop.metric(:false_negatives, "FN", :running_sum)
+      |> Axon.Loop.metric(:false_positives, "FP", :running_sum)
+      |> Axon.Loop.metric(:true_positives, "TP", :running_sum)
+      |> Axon.Loop.metric(:true_negatives, "TN", :running_sum)
       |> Axon.Loop.run(dematerialized_batches, dematerialized_state,
         epochs: opts[:epochs],
         iterations: length(batches),
