@@ -1,7 +1,6 @@
 defmodule Hive.Models.Xor.ModelTrainer do
   @behaviour Hive.Core.ModelTrainer
   use GenServer
-
   require Logger
 
   # --- API ---
@@ -185,7 +184,7 @@ defmodule Hive.Models.Xor.ModelTrainer do
       current_model_state: current_model_state
     } = training_run
 
-    epochs_for_this_step = 2
+    epochs_for_this_step = 1
 
     iterations_for_this_step = div(opts[:iterations], length(state.nodes))
 

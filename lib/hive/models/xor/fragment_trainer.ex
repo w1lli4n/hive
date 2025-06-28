@@ -15,7 +15,11 @@ defmodule Hive.Models.Xor.FragmentTrainer do
     model_state =
       model
       |> Axon.Loop.trainer(:binary_cross_entropy, :sgd)
-      |> Axon.Loop.metric(:accuracy)
+      |> Axon.Loop.metric(:accuracy, "Accuracy")
+      |> Axon.Loop.metric(:false_negatives, "FN", :running_sum)
+      |> Axon.Loop.metric(:false_positives, "FP", :running_sum)
+      |> Axon.Loop.metric(:true_positives, "TP", :running_sum)
+      |> Axon.Loop.metric(:true_negatives, "TN", :running_sum)
       |> Axon.Loop.run(data_stream, dematerialized_state,
         epochs: opts[:epochs],
         iterations: opts[:iterations] || 1000,
